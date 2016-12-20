@@ -18,6 +18,7 @@ Main.prototype = {
 
         //Set the background colour to blue
         me.game.stage.backgroundColor = '479cde';
+        //me.game.add.sprite(0, 0, 'sky');
 
         //Enable the Arcade physics system
         me.game.physics.startSystem(Phaser.Physics.ARCADE);
@@ -66,9 +67,11 @@ Main.prototype = {
         } else if (me.cursors.left.isDown) {
             //Make the player go left
             me.player.body.velocity.x += -500;
+            me.player.animations.play('left');
         } else if (me.cursors.right.isDown) {
             //Make the player go right
             me.player.body.velocity.x += 500;
+            me.player.animations.play('right');
         }
 
         //Check if the player is touching the bottom
@@ -173,13 +176,16 @@ Main.prototype = {
         me.player.body.collideWorldBounds = true;
         //Make the player bounce a little
         //me.player.body.bounce.y = 0.1;
+
+        me.player.animations.add('left', [1], 10, true);
+        me.player.animations.add('right', [0], 10, true);
     },
 
     createScore: function(){
         var me = this;
         var scoreFont = "100px Arial";
 
-        me.scoreLabel = me.game.add.text((me.game.world.centerX), 100, "0", {font: scoreFont, fill: "#fff"});
+        me.scoreLabel = me.game.add.text(50, 100, "0", {font: scoreFont, fill: "#fff"});
         me.scoreLabel.anchor.setTo(0.5, 0.5);
         me.scoreLabel.align = 'center';
 
