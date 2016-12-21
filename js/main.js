@@ -33,6 +33,11 @@ Main.prototype = {
         me.crumbled.enableBody = true;
         me.crumbled.createMultiple(6, 'crumbled');
 
+        // Add [x] number of snakes.
+        me.snakes = me.game.add.group();
+        me.snakes.enableBody = true;
+        me.snakes.createMultiple(4, 'snake');
+
         //Create the inital on screen platforms
         me.initPlatforms();
 
@@ -60,6 +65,9 @@ Main.prototype = {
 
         // Check if the player is touching a crumbled tile.
         me.game.physics.arcade.collide(me.player, me.crumbled, me.removeCrumbled, null, this);
+
+        // Check collision with snake.
+        me.game.physics.arcade.collide(me.player, me.snakes, me.gameOver, null, this);
 
         if (me.cursors.up.isDown && me.player.body.wasTouching.down) {
             //Make the sprite jump when the up key is pushed
@@ -103,8 +111,9 @@ Main.prototype = {
         var crumbled = me.crumbled.getFirstDead();
         var crumbledChance = game.rnd.integerInRange(1, 10);
 
+        var snake = me.snakes.getFirstDead();
+
         if ( crumbled && crumbledChance > 8 ) {
-            //console.log(crumbled);
             crumbled.reset(x, y);
             crumbled.body.velocity.y = tileVelocity;
             crumbled.body.immovable = true;
@@ -113,7 +122,6 @@ Main.prototype = {
             crumbled.checkWorldBounds = true;
             crumbled.outOfBoundsKill = true;
         } else {
-    //console.log(crumbledChance);
             //Reset it to the specified coordinates
             tile.reset(x, y);
             tile.body.velocity.y = tileVelocity;
@@ -122,31 +130,64 @@ Main.prototype = {
             //When the tile leaves the screen, kill it
             tile.checkWorldBounds = true;
             tile.outOfBoundsKill = true;
+
+            var snakeChance = game.rnd.integerInRange(1, 20);
+
+            if (snake  && snakeChance > 10) {
+                snake.reset(x, y-me.tileHeight);
+                
+                snake.body.velocity.y = tileVelocity;
+                snake.body.immovable = true;
+
+                snake.checkWorldBounds = true;
+                snake.outOfBoundsKill = true;
+            }
         }
     },
 
     addPlatform: function(y){
         var me = this;
 
-        //If no y position is supplied, render it just outside of the screen
+        // If no y position is supplied, render it just outside of the screen
         if(typeof(y) == "undefined"){
             y = -me.tileHeight;
-            //Increase the players score
+            // Increase the players score
             me.incrementScore();
         }
+
+        var platformWidth = 0;
+        var tiles = 0;
+        var maxTilesPossible = Math.ceil(me.game.world.width / me.tileWidth);
+        var firstHole = game.rnd.integerInRange(1, maxTilesPossible / 2);
+        var secondHole = game.rnd.integerInRange(maxTilesPossible / 2, maxTilesPossible);
+
+        while (platformWidth < me.game.world.width) {
+            if ( tiles != firstHole && tiles != secondHole ) {
+                this.addTile(tiles * me.tileWidth, y);
+                platformWidth += me.tileWidth;
+                tiles++;
+            } else {
+                // a hole is 3 tiles wide.
+                platformWidth += (3 * me.tileWidth);
+                tiles = tiles + 3;
+            }
+        }
+
+        if (false) {
 
         //Work out how many tiles we need to fit across the whole screen
         var tilesNeeded = Math.ceil(me.game.world.width / me.tileWidth);
 
-        //Add a hole randomly somewhere
+        // Add a hole randomly somewhere
         var hole = Math.floor(Math.random() * (tilesNeeded - 3)) + 1;
 
-        //Keep creating tiles next to each other until we have an entire row
-        //Don't add tiles where the random hole is
+        // Keep creating tiles next to each other until we have an entire row
+        // Don't add tiles where the random hole is.
         for (var i = 0; i < tilesNeeded; i++) {
-            if (i != hole && i != hole + 1){
+            if (i != hole && i != hole + 1) {
                 this.addTile(i * me.tileWidth, y);
             }
+        }
         }
     },
 
