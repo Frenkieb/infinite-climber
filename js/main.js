@@ -12,11 +12,13 @@ Main.prototype = {
         //Set the initial score
         me.score = 0;
 
+        me.campfireScore = 5;
+
         //Get the dimensions of the tile we are using
         me.tileWidth = me.game.cache.getImage('tile').width;
         me.tileHeight = me.game.cache.getImage('tile').height;
 
-        me.snakeHeight = me.game.cache.getImage('snake').height;
+        me.campfireHeight = me.game.cache.getImage('campfire').height;
 
         //Set the background colour to blue
         me.game.stage.backgroundColor = '479cde';
@@ -35,10 +37,13 @@ Main.prototype = {
         me.crumbled.enableBody = true;
         me.crumbled.createMultiple(6, 'crumbled');
 
-        // Add [x] number of snakes.
-        me.snakes = me.game.add.group();
-        me.snakes.enableBody = true;
-        me.snakes.createMultiple(5, 'snake');
+        // Add [x] number of campfires.
+        me.campfires = me.game.add.group();
+        me.campfires.enableBody = true;
+        me.campfires.createMultiple(5, 'campfire');
+
+        me.campfires.callAll('animations.add', 'animations', 'burn', [0,1,2,3,4], 50, true);
+        me.campfires.callAll('play', null, 'burn');
 
         //Create the inital on screen platforms
         me.initPlatforms();
@@ -68,8 +73,8 @@ Main.prototype = {
         // Check if the player is touching a crumbled tile.
         me.game.physics.arcade.collide(me.player, me.crumbled, me.removeCrumbled, null, this);
 
-        // Check collision with snake.
-        me.game.physics.arcade.collide(me.player, me.snakes, me.gameOver, null, this);
+        // Check collision with campfire.
+        me.game.physics.arcade.collide(me.player, me.campfires, me.gameOver, null, this);
 
         if (me.cursors.up.isDown && me.player.body.wasTouching.down) {
             //Make the sprite jump when the up key is pushed
@@ -131,22 +136,23 @@ Main.prototype = {
             tile.checkWorldBounds = true;
             tile.outOfBoundsKill = true;
 
-            // Place a snake above a tile.
-            var snake = me.snakes.getFirstDead();
-            var snakeChance = game.rnd.integerInRange(1, 20);
+            // Place a campfire above a tile.
+            var campfire = me.campfires.getFirstDead();
+            var campfireChance = game.rnd.integerInRange(1, 20);
 
-                snake.reset(x, y - me.snakeHeight);
+            if (me.score > me.campfireScore && campfire && campfireChance > 19) {
+                campfire.reset(x, y - me.campfireHeight);
 
-                snake.body.velocity.y = tileVelocity;
-                snake.body.immovable = true;
+                campfire.body.velocity.y = tileVelocity;
+                campfire.body.immovable = true;
 
-                // Don't do snake.outOfBoundsKill = false.
-                // We place the snake out of the world bounds, that would kill it immediately.
-                // Do our own check if the snake leaves the world on the bottom.
-                snake.checkWorldBounds = true;
-                snake.events.onOutOfBounds.add(function() {
-                    if (snake.position.y > me.game.world.height ) {
-                        snake.kill();
+                // Don't do campfire.outOfBoundsKill = false.
+                // We place the campfire out of the world bounds, that would kill it immediately.
+                // Do our own check if the campfire leaves the world on the bottom.
+                campfire.checkWorldBounds = true;
+                campfire.events.onOutOfBounds.add(function() {
+                    if (campfire.position.y > me.game.world.height ) {
+                        campfire.kill();
                     }
                 }, this);
             }
