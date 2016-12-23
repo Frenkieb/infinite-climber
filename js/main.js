@@ -16,6 +16,8 @@ Main.prototype = {
         me.tileWidth = me.game.cache.getImage('tile').width;
         me.tileHeight = me.game.cache.getImage('tile').height;
 
+        me.snakeHeight = me.game.cache.getImage('snake').height;
+
         //Set the background colour to blue
         me.game.stage.backgroundColor = '479cde';
         //me.game.add.sprite(0, 0, 'sky');
@@ -36,7 +38,7 @@ Main.prototype = {
         // Add [x] number of snakes.
         me.snakes = me.game.add.group();
         me.snakes.enableBody = true;
-        me.snakes.createMultiple(4, 'snake');
+        me.snakes.createMultiple(5, 'snake');
 
         //Create the inital on screen platforms
         me.initPlatforms();
@@ -47,7 +49,7 @@ Main.prototype = {
         //Create the score label
         me.createScore();
 
-        //Add a platform every 2 seconds
+        //Add a platform every 2 seconds.
         me.timer = game.time.events.loop(2000, me.addPlatform, me);
 
         //Enable cursor keys so we can create some controls
@@ -111,8 +113,6 @@ Main.prototype = {
         var crumbled = me.crumbled.getFirstDead();
         var crumbledChance = game.rnd.integerInRange(1, 10);
 
-        var snake = me.snakes.getFirstDead();
-
         if ( crumbled && crumbledChance > 8 ) {
             crumbled.reset(x, y);
             crumbled.body.velocity.y = tileVelocity;
@@ -131,16 +131,24 @@ Main.prototype = {
             tile.checkWorldBounds = true;
             tile.outOfBoundsKill = true;
 
+            // Place a snake above a tile.
+            var snake = me.snakes.getFirstDead();
             var snakeChance = game.rnd.integerInRange(1, 20);
 
-            if (snake  && snakeChance > 10) {
-                snake.reset(x, y-me.tileHeight);
-                
+                snake.reset(x, y - me.snakeHeight);
+
                 snake.body.velocity.y = tileVelocity;
                 snake.body.immovable = true;
 
+                // Don't do snake.outOfBoundsKill = false.
+                // We place the snake out of the world bounds, that would kill it immediately.
+                // Do our own check if the snake leaves the world on the bottom.
                 snake.checkWorldBounds = true;
-                snake.outOfBoundsKill = true;
+                snake.events.onOutOfBounds.add(function() {
+                    if (snake.position.y > me.game.world.height ) {
+                        snake.kill();
+                    }
+                }, this);
             }
         }
     },
